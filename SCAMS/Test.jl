@@ -45,11 +45,11 @@ function run(C, N, M; ε0=-2.0)
     println("RFWgap(x): ", ans.gaplog[1], "->", ans.gaplog[end])
     println("Solved in ", ans.t, " iteration\n")
     plot!(log10.(1:length(ans.gaplog)), log10.(ans.gaplog), aspect_ratio=:equal)
-    savefig("plot.png")
+    savefig("SCAMS\\plot.png")
 end
 
-N = 100
-M = 200
+N = 1000
+M = 5000
 C = GenGraph(N, M)
 display(C)
 run(C, N, M)
