@@ -15,7 +15,7 @@ function GenGraph(N, M)
         C[i, i] += 1
         C[v, v] += 1
     end
-    for i = N+1:M
+    for i = N:M
         u = rand(1:N)
         v = rand(1:N)
         while u == v || C[u, v] == -1
@@ -41,15 +41,16 @@ function run(C, N, M; ε0=-2.0)
     # ans.xlog, ans.qlog, ans.vlog, ans.λlog: history of LMO routine outputs
     # ans.gaplog: Frank-Wolfe gap history; ans.flog: f(x) history
 
+    println(sign.(ans.z))
     println("\n\nf(x):      ", ans.flog[1], "->", ans.flog[end])
     println("RFWgap(x): ", ans.gaplog[1], "->", ans.gaplog[end])
     println("Solved in ", ans.t, " iteration\n")
     plot!(log10.(1:length(ans.gaplog)), log10.(ans.gaplog), aspect_ratio=:equal)
-    savefig("SCAMS\\plot.png")
+    savefig("plot.png")
 end
 
-N = 1000
-M = 5000
+N = 5
+M = 8
 C = GenGraph(N, M)
 display(C)
 run(C, N, M)
