@@ -50,7 +50,7 @@ function run(C, N, M; ε0=-2.0)
 end
 
 N = 5
-M = 8
+M = 4
 C = GenGraph(N, M)
 display(C)
 run(C, N, M)
