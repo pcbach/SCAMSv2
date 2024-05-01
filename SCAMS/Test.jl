@@ -2,6 +2,8 @@ include("SCAMS.jl")
 using Plots
 using DelimitedFiles
 using SparseArrays
+using JSON
+using Random
 
 function GenGraph(N, M)
     C = spzeros((N, N))
@@ -29,13 +31,18 @@ function GenGraph(N, M)
     return C
 end
 
-function run(C, N, M; ε0=-2.0)
+function solve(C, N, M; ε=0.01)
     C = C / 4
     x = Array(diag(C) / M)
     z = rand(Normal(0, 1), (N, 1)) .* sqrt.(x)
     # eigSolver option A: Arnoldi method(recommended); P: Power Iteration; F: Full eigenvalue
     # printOption option "full", "partial", "none"
-    ans = SCAMS(C, x, z, ε=10^(ε0), printOption="none", eigSolver="A")
+    # here we divide the ε by 2 because 
+
+    # SCAMS gives one (1 ± ε)-approximation of sqrt root of the maxcut value 
+    # which in turn gives one (1 ± 2ε)-approximation of the maxcut value
+    # so to achieve desired accuracy, we need to half the ε 
+    ans = SCAMS(C, x, z, ε=ε/2, printOption="none", eigSolver="A")
     # ans tuple 
     # ans.z: sample; ans.x: iterate; ans.t: max Iteration
     # ans.xlog, ans.qlog, ans.vlog, ans.λlog: history of LMO routine outputs
@@ -44,12 +51,89 @@ function run(C, N, M; ε0=-2.0)
     println("\n\nf(x):      ", ans.flog[1], "->", ans.flog[end])
     println("RFWgap(x): ", ans.gaplog[1], "->", ans.gaplog[end])
     println("Solved in ", ans.t, " iteration\n")
-    plot!(log10.(1:length(ans.gaplog)), log10.(ans.gaplog), aspect_ratio=:equal)
-    savefig("SCAMS\\plot.png")
+    #plot!(log10.(1:length(ans.gaplog)), log10.(ans.gaplog), aspect_ratio=:equal)
+    #savefig("SCAMS_plot.png")
+    return ans
 end
 
-N = 1000
-M = 5000
-C = GenGraph(N, M)
-display(C)
-run(C, N, M)
+using MAT
+
+function read_graph(
+    filename::String;
+    filefolder::String=homedir()*"/datasets/graphs/",
+)
+    filepath = filefolder*filename*".mat"
+    data = matread(filepath) 
+    return data 
+end
+
+BLAS.set_num_threads(1)
+
+using ArgParse
+
+s = ArgParseSettings()
+
+@add_arg_table s begin
+    "--graph"
+        arg_type = String
+        default = "G1" 
+        help = "Name of the graph"
+    "--tol"
+        arg_type = Float64
+        default = 1e-2
+        help = "Tolerance for relative Frank-Wolfe duality gap"
+    "--seed"
+        arg_type = Int64
+        default = 0
+        help = "Random seed"
+end
+
+# parse the command line arguments
+args = parse_args(s)
+
+# fix the random seed for reproducibility
+seed = args["seed"]
+Random.seed!(args["seed"])
+
+tol = args["tol"]
+dataset = args["graph"]
+
+function test(dataset, tol) 
+    @info "Solving MaxCut for $dataset"
+    A = read_graph(dataset)["A_abs"]
+    d = sum(A, dims=1)[1, :]
+    C = Diagonal(d) - A
+    N = size(C, 1)
+    M = div(nnz(A), 2) 
+    res = @timed ans = solve(C, N, M; ε=tol)
+    ans = Dict(pairs(ans))
+    ans[:time] = res.time
+
+    short_ans = Dict(
+        #:z => ans[:z],    
+        #:x => ans[:x],
+        :t => ans[:t],
+        #:λlog => ans[:λlog],
+        :flog => ans[:flog],
+        :gaplog => ans[:gaplog],
+        :time => ans[:time]
+    )
+    @show res.time
+    return ans, short_ans
+end
+
+# julia requires warmup
+test("G1", tol)
+
+# run the test
+ans, short_ans = test(dataset, tol)
+
+output_path=homedir()*"/SDPLR.jl/output/MaxCut/"*dataset*"/SCAMS/"
+
+mkpath(output_path)
+open(output_path*"SCAMS-tol-$tol-seed-$seed.json", "w") do f
+    JSON.print(f, ans, 4)
+end
+open(output_path*"SCAMS-short-tol-$tol-seed-$seed.json", "w") do f
+    JSON.print(f, short_ans, 4)
+end
