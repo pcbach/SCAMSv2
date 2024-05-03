@@ -56,13 +56,20 @@ function solve(C, N, M; ε=0.01)
     return ans
 end
 
+
+function cutvalue(C, z)
+    part = sign.(z)
+    return 0.25 * (part' * C * part)
+end
+
 using MAT
 
 function read_graph(
     filename::String;
+    mode::String="MaxCut",
     filefolder::String=homedir()*"/datasets/graphs/",
 )
-    filepath = filefolder*filename*".mat"
+    filepath = filefolder*mode*"/"*filename*".mat"
     data = matread(filepath) 
     return data 
 end
@@ -100,7 +107,7 @@ dataset = args["graph"]
 
 function test(dataset, tol) 
     @info "Solving MaxCut for $dataset"
-    A = read_graph(dataset)["A_abs"]
+    A = read_graph(dataset)["A"]
     d = sum(A, dims=1)[1, :]
     C = Diagonal(d) - A
     N = size(C, 1)
@@ -108,6 +115,9 @@ function test(dataset, tol)
     res = @timed ans = solve(C, N, M; ε=tol)
     ans = Dict(pairs(ans))
     ans[:time] = res.time
+    cut = cutvalue(C, ans[:z])
+    ans[:cut] = cut
+    ans[:fsqr_log] = ans[:flog].^2
 
     short_ans = Dict(
         #:z => ans[:z],    
@@ -116,9 +126,10 @@ function test(dataset, tol)
         #:λlog => ans[:λlog],
         :flog => ans[:flog],
         :gaplog => ans[:gaplog],
-        :time => ans[:time]
+        :time => ans[:time],
+        :cut => ans[:cut],
+        :fsqr_log => ans[:fsqr_log],
     )
-    @show res.time
     return ans, short_ans
 end
 
