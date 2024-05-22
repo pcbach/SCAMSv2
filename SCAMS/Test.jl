@@ -17,7 +17,7 @@ function GenGraph(N, M)
         C[i, i] += 1
         C[v, v] += 1
     end
-    for i = N+1:M
+    for i = N:M
         u = rand(1:N)
         v = rand(1:N)
         while u == v || C[u, v] == -1
@@ -48,6 +48,7 @@ function solve(C, N, M; ε=0.01)
     # ans.xlog, ans.qlog, ans.vlog, ans.λlog: history of LMO routine outputs
     # ans.gaplog: Frank-Wolfe gap history; ans.flog: f(x) history
 
+    println(sign.(ans.z))
     println("\n\nf(x):      ", ans.flog[1], "->", ans.flog[end])
     println("RFWgap(x): ", ans.gaplog[1], "->", ans.gaplog[end])
     println("Solved in ", ans.t, " iteration\n")
