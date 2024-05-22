@@ -120,10 +120,7 @@ function test(dataset, tol)
     ans[:fsqr_log] = ans[:flog].^2
 
     short_ans = Dict(
-        #:z => ans[:z],    
-        #:x => ans[:x],
         :t => ans[:t],
-        #:λlog => ans[:λlog],
         :flog => ans[:flog],
         :gaplog => ans[:gaplog],
         :time => ans[:time],
@@ -139,9 +136,9 @@ test("G1", tol)
 # run the test
 ans, short_ans = test(dataset, tol)
 
-output_path=homedir()*"/SDPLR.jl/output/MaxCut/"*dataset*"/SCAMS/"
-
+output_path=homedir()*"/SCAMSv2-new/output/"*dataset*"/"
 mkpath(output_path)
+
 open(output_path*"SCAMS-tol-$tol-seed-$seed.json", "w") do f
     JSON.print(f, ans, 4)
 end
