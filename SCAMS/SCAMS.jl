@@ -87,17 +87,17 @@ end
 function SCAMS(C, x, z; ε=1e-2, printOption="full", eigSolver="A")
     n = length(x)
     t = 1
-    xlog = zeros(ComplexF64, n, 0)
-    vlog = zeros(ComplexF64, n, 0)
-    qlog = zeros(ComplexF64, n, 0)
-    λlog = zeros(ComplexF64, 0)
-    flog = zeros(Float64, 0)
-    gaplog = zeros(Float64, 0)
+
+    tlog = Int64[]
+    xlog = Vector{ComplexF64}[] 
+    vlog = Vector{ComplexF64}[]
+    qlog = Vector{ComplexF64}[]
+    λlog = ComplexF64[]
+    flog = Float64[]
+    gaplog = Float64[]
     α = sqrt(2 * tr(C)) ./ (2 * diag(C))
     α = Vector(α)
     v, q, λ = LMO(C, ∇f(x, α), tol=1.0, eigSolver=eigSolver)
-    vlog = hcat(vlog, v)
-    qlog = hcat(qlog, q)
     δ = abs(dot(∇f(x, α), real.(q - x))) / abs(f(x))
     while t <= 1 || abs(dot(∇f(x, α), real.(q - x))) / abs(f(x)) > ε
         if t > 10
@@ -107,19 +107,20 @@ function SCAMS(C, x, z; ε=1e-2, printOption="full", eigSolver="A")
         end
         x = (1 - γ) * x + γ * q
 
-
-        xlog = hcat(xlog, x)
-        t = t + 1
         for i = 1:size(z)[2]
             z[:, i] = sqrt(1 - γ) * z[:, i] + sqrt(γ) * v * rand(Normal(0, 1))
         end
         v, q, λ = LMO(C, ∇f(x, α), tol=δ / 10, eigSolver=eigSolver)
         δ = abs(dot(∇f(x, α), real.(q - x))) / abs(f(x))
-        vlog = hcat(vlog, v)
-        qlog = hcat(qlog, q)
-        append!(λlog, λ)
-        append!(gaplog, abs(dot(∇f(x, α), real.(q - x))) / abs(f(x)))
-        append!(flog, f(x))
+        if ispow2(t)
+            append!(tlog, t)
+            push!(xlog, x)
+            push!(vlog, v)
+            push!(qlog, q)
+            append!(λlog, λ)
+            append!(gaplog, abs(dot(∇f(x, α), real.(q - x))) / abs(f(x)))
+            append!(flog, f(x))
+        end
 
 
         if (printOption == "full")
@@ -129,9 +130,23 @@ function SCAMS(C, x, z; ε=1e-2, printOption="full", eigSolver="A")
                 print(".")
             end
         end
+        t = t + 1
     end
+    # store the result of the last iteration
+    # only if the last iteration is not a power of 2
+    # otherwise duplicate
+    if !ispow2(t-1) 
+        append!(tlog, t-1)
+        push!(xlog, x)
+        push!(vlog, v)
+        push!(qlog, q)
+        append!(λlog, λ)
+        append!(gaplog, abs(dot(∇f(x, α), real.(q - x))) / abs(f(x)))
+        append!(flog, f(x))
+    end
+
     if (printOption == "partial")
         println()
     end
-    return (z=z, x=x, t=t, xlog=xlog, qlog=qlog, vlog=vlog, λlog=λlog, gaplog=gaplog, flog=flog)
+    return (z=z, x=x, t=t, tlog=tlog, xlog=xlog, qlog=qlog, vlog=vlog, λlog=λlog, gaplog=gaplog, flog=flog)
 end

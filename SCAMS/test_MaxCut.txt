@@ -1,0 +1,9 @@
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G1
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G2
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G3
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G4
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G5
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G6
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G7
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G8
+ulimit -d 16777216;cd ~/SCAMSv2/SCAMS;/p/mnt/software/julia-1.7.1/bin/julia --project Test.jl --seed 0 --tol 0.01 --graph G9
