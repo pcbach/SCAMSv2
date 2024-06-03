@@ -4,6 +4,8 @@ using DelimitedFiles
 using SparseArrays
 using JSON
 using Random
+using ArgParse
+using MAT
 
 function GenGraph(N, M)
     C = spzeros((N, N))
@@ -48,7 +50,6 @@ function solve(C, N, M; ε=0.01)
     # ans.xlog, ans.qlog, ans.vlog, ans.λlog: history of LMO routine outputs
     # ans.gaplog: Frank-Wolfe gap history; ans.flog: f(x) history
 
-    println(sign.(ans.z))
     println("\n\nf(x):      ", ans.flog[1], "->", ans.flog[end])
     println("RFWgap(x): ", ans.gaplog[1], "->", ans.gaplog[end])
     println("Solved in ", ans.t, " iteration\n")
@@ -63,21 +64,16 @@ function cutvalue(C, z)
     return 0.25 * (part' * C * part)
 end
 
-using MAT
-
 function read_graph(
     filename::String;
-    mode::String="MaxCut",
-    filefolder::String=homedir()*"/datasets/graphs/",
+    filefolder::String=homedir()*"/SCAMSv2/data",
 )
-    filepath = filefolder*mode*"/"*filename*".mat"
+    filepath = filefolder*"/"*filename*".mat"
     data = matread(filepath) 
     return data 
 end
 
-BLAS.set_num_threads(1)
 
-using ArgParse
 
 s = ArgParseSettings()
 
@@ -94,10 +90,18 @@ s = ArgParseSettings()
         arg_type = Int64
         default = 0
         help = "Random seed"
+    "--nthreads"
+        arg_type = Int64
+        default = 1
+        help = "Number of threads used"
 end
 
 # parse the command line arguments
 args = parse_args(s)
+
+# for fair comparison, we fix the number of threads
+# by default we disable multi-threading
+BLAS.set_num_threads(args["nthreads"])
 
 # fix the random seed for reproducibility
 seed = args["seed"]
@@ -137,12 +141,16 @@ test("G1", tol)
 # run the test
 ans, short_ans = test(dataset, tol)
 
-output_path=homedir()*"/SCAMSv2-new/output/"*dataset*"/"
+output_path=homedir()*"/SCAMSv2/output/"*dataset*"/"
 mkpath(output_path)
 
 open(output_path*"SCAMS-tol-$tol-seed-$seed.json", "w") do f
     JSON.print(f, ans, 4)
 end
+
+## save the short version of the result
+## make the json file quicker to open
+## and easier to read
 open(output_path*"SCAMS-short-tol-$tol-seed-$seed.json", "w") do f
     JSON.print(f, short_ans, 4)
 end
