@@ -48,6 +48,6 @@ export OPENBLAS_NUM_THREADS=1
 export OMP_NUM_THREADS=1
 ```
 
-# Acknowledgement
-Thanks for Chi Bach Pham et. al. designing this great solver
-that enables these experiments.
+# Contributions
+The original solver codes were created by Chi Bach Pham under the supervision of Dr. James Saunderson and Dr. Wynita Griggs at Monash University, Australia.
+Later improvements were made by Yufan Huang at Purdue University.
