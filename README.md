@@ -4,7 +4,7 @@ This repo contains code for the paper
 ```
 A Scalable Frank-Wolfe-Based Algorithm for the Max-Cut SDP
 ```
-and some modification from me for batch testing it.
+and some modification for batch testing it.
 
 # Installation
 You need to install `Julia 1.7.1` and then you can enter
